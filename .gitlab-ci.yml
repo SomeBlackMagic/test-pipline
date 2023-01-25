@@ -9,7 +9,6 @@
 
 # See https://docs.gitlab.com/ee/ci/yaml/index.html for all available options
 
-
 before_script:
   - echo "Before script section"
   - echo "For example you might run an update here or install a build dependency"
