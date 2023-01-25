@@ -31,7 +31,7 @@ build1:
   stage: build
   script:
     - echo "Do your build here"
-    - vault_get_all_by_secret_path "kv/common/piplines"
+    - vault_get_all_keys_by_secret_path "kv/common/piplines"
 
 test1:
   stage: test
