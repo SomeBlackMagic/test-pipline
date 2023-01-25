@@ -1,0 +1,45 @@
+version: "3.7"
+
+services:
+
+    nginx:
+        build:
+            context: nginx
+        restart: on-failure
+        networks:
+            - rundax
+        volumes:
+            - ./..:/app:delegated
+        ports:
+            - ${WEB_PORT}:80
+
+    php:
+        build:
+            context: php${DOCKER_PHP_VERSION}-dev
+            args:
+                DOCKER_SERVER_HOST: ${DOCKER_SERVER_HOST}
+                DOCKER_PROJECT_PATH: ${DOCKER_PROJECT_PATH}
+                DOCKER_PHP_VERSION: ${DOCKER_PHP_VERSION}
+                DOCKER_IMAGE_VERSION: ${DOCKER_IMAGE_VERSION}
+                DOCKER_UID: ${DOCKER_UID}
+                DOCKER_GID: ${DOCKER_GID}
+        environment:
+            XDEBUG_SESSION: "PHPSTORM"
+            XDEBUG_CONFIG: "client_host=${XDEBUG_REMOTE_HOST}"
+            PHP_IDE_CONFIG: "serverName=aloha"
+        user: ${DOCKER_UID}:${DOCKER_GID}
+        restart: on-failure
+        image: ${DOCKER_SERVER_HOST}/${DOCKER_PROJECT_PATH}/php${DOCKER_PHP_VERSION}-dev:${DOCKER_IMAGE_VERSION}
+        networks:
+            - rundax
+        volumes:
+            - ./..:/app:delegated
+            - ~/.composer/cache:/home/app/.composer_cache:rw
+            - composer_home:/home/app/.composer
+
+volumes:
+    composer_home:
+
+networks:
+    rundax:
+        external: true

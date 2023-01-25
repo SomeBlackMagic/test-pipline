@@ -1,0 +1,14 @@
+.dev_app_test:
+    extends: .is_build
+    variables:
+        IMAGE: ${CI_REGISTRY}/${CI_PROJECT_PATH}/app_test:${CI_COMMIT_REF_SLUG}
+    stage: app_test
+    allow_failure: true
+    except:
+        refs:
+            - /^v.*/
+
+test-lint-syntax:
+    extends: .dev_app_test
+    script:
+        - docker run --rm -t ${IMAGE} flakehell lint

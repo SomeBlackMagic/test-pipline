@@ -1,0 +1,79 @@
+.dev_job:
+  except:
+    refs:
+      - /^v.*/
+  environment:
+    name: $DEV_ENV-$CI_COMMIT_REF_SLUG
+#    on_stop: stop_review
+
+.stage_job:
+  only:
+    refs:
+      - /^v.*/
+  environment:
+    name: $PROD_ENV
+#    on_stop: stop_review
+
+.prod_job:
+  only:
+    refs:
+      - /^v.*/
+  environment:
+    name: $PROD_ENV
+#    on_stop: stop_review
+
+.is_build:
+  before_script:
+    - . .gitlab-ci-functions/docker.sh
+    - . .gitlab-ci-functions/kubernetes.sh
+    - . .gitlab-ci-functions/rabbitmq.sh
+    - . .gitlab-ci-functions/mysql.sh
+    - . .gitlab-ci-functions/misc.sh
+    - . .gitlab-ci-functions/vault.sh
+    - set -eu
+
+    - |
+      echo "Login into global docker registry"
+      vault_load_variables_by_secret_path kv/common/pipelines
+      registry_param_login ${GLOBAL_DOCKER_HUB_URL} ${GLOBAL_DOCKER_HUB_LOGIN} ${GLOBAL_DOCKER_HUB_PASS}
+
+    - |
+      echo "Login into private docker registry"
+      vault_load_variables_by_secret_path kv/aloha/common
+      registry_param_login ${DOCKER_HUB_URL} ${DOCKER_HUB_LOGIN} ${DOCKER_HUB_PASS}
+
+    - vault_load_variables_by_secret_path kv/aloha/ui-backend/common
+
+    - |
+      if [[ ${CI_DEBUG:-''} == "true" ]]; then
+        set -x
+      fi
+  tags:
+    - docker
+#
+#.is_deploy:
+#  before_script:
+#    - . .gitlab-ci-functions/docker.sh
+#    - . .gitlab-ci-functions/kubernetes.sh
+#    - . .gitlab-ci-functions/rabbitmq.sh
+#    - . .gitlab-ci-functions/postgresql.sh
+#    - . .gitlab-ci-functions/mysql.sh
+#    - . .gitlab-ci-functions/misc.sh
+#    - . .gitlab-ci-functions/gitlab.sh
+#    - set -eu
+#
+#    - registry_param_login $GLOBAL_DOCKER_HUB_URL $GLOBAL_DOCKER_HUB_LOGIN $GLOBAL_DOCKER_HUB_PASS
+#    - registry_param_login $CI_REGISTRY $CI_REGISTRY_USER $CI_JOB_TOKEN
+#
+#    - |
+#      if [[ ${CI_DEBUG:-''} == "true" ]]; then
+#        set -x
+#      fi
+#
+#    - . .gitlab/_common.sh
+#
+#    - |
+#      echo "KUBE_NAMESPACE - $KUBE_NAMESPACE"
+##      echo "MODE - $MODE"
+#  tags:
+#    - kubernetes

@@ -1,0 +1,68 @@
+.base_image_app:
+  extends: .is_build
+  stage: base_image_app
+  script:
+    - |
+      export DOCKER_BUILDKIT=1
+      docker_build_file_args ${IMAGE} ${DOCKER_FILE} \
+      "\
+        --build-arg DOCKER_SERVER_HOST=${CI_REGISTRY} \
+        --build-arg DOCKER_PROJECT_PATH=${CI_PROJECT_PATH} \
+        --build-arg DOCKER_IMAGE_VERSION=${CI_COMMIT_REF_SLUG} \
+      "
+    - docker push ${IMAGE}
+
+base_image_app_dev:
+  variables:
+    IMAGE: ${CI_REGISTRY}/${CI_PROJECT_PATH}/app-dev:${CI_COMMIT_REF_SLUG}
+    DOCKER_FILE: .docker/app/dev.Dockerfile
+  extends: .base_image_app
+
+base_image_app_prod:
+  variables:
+    IMAGE: ${CI_REGISTRY}/${CI_PROJECT_PATH}/app-prod:${CI_COMMIT_REF_SLUG}
+    DOCKER_FILE: .docker/app/prod.Dockerfile
+  extends: .base_image_app
+
+.app_image:
+  extends: .is_build
+  stage: app_image
+  script:
+    - |
+      docker_build_file_args ${IMAGE} ${DOCKER_FILE} \
+      "\
+        --build-arg DOCKER_SERVER_HOST=${CI_REGISTRY} \
+        --build-arg DOCKER_PROJECT_PATH=${CI_PROJECT_PATH} \
+        --build-arg DOCKER_IMAGE_VERSION=${CI_COMMIT_REF_SLUG} \
+      "
+    - docker push ${IMAGE}
+
+app_test:
+  variables:
+    IMAGE: ${CI_REGISTRY}/${CI_PROJECT_PATH}/app_test:${CI_COMMIT_REF_SLUG}
+    DOCKER_FILE: .docker/app_test/Dockerfile
+  extends:
+    - .app_image
+
+
+app_workers:
+  variables:
+    IMAGE: ${CI_REGISTRY}/${CI_PROJECT_PATH}/worker:${CI_COMMIT_REF_SLUG}
+    DOCKER_FILE: .docker/app-worker/Dockerfile
+  extends:
+    - .app_image
+
+app_api:
+  variables:
+    IMAGE: ${CI_REGISTRY}/${CI_PROJECT_PATH}/api:${CI_COMMIT_REF_SLUG}
+    DOCKER_FILE: .docker/app-api/Dockerfile
+  extends:
+    - .app_image
+
+app_presetup:
+  variables:
+    IMAGE: ${CI_REGISTRY}/${CI_PROJECT_PATH}/presetup:${CI_COMMIT_REF_SLUG}
+    DOCKER_FILE: .docker/app-presetup/Dockerfile
+  extends:
+    - .app_image
+

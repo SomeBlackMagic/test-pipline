@@ -1,0 +1,26 @@
+.base_image:
+  extends: .is_build
+  script:
+    - |
+      docker_build_dir_args ${IMAGE} ${DOCKER_PATH} \
+      "\
+        --build-arg DOCKER_SERVER_HOST=${DOCKER_REGISTRY} \
+        --build-arg DOCKER_PROJECT_PATH=${DOCKER_PROJECT_PATH} \
+        --build-arg DOCKER_PHP_VERSION=${DOCKER_PHP_VERSION} \
+        --build-arg DOCKER_IMAGE_VERSION=${CI_COMMIT_REF_SLUG} \
+      "
+    - docker push ${IMAGE}
+
+base_image_fpm:
+    variables:
+        IMAGE: ${CI_REGISTRY}/${CI_PROJECT_PATH}/php7.4-fpm:${CI_COMMIT_REF_SLUG}
+        DOCKER_PATH: .docker/php7.4-fpm/
+    stage: base_image
+    extends: .base_image
+
+base_image_composer:
+    variables:
+        IMAGE: ${CI_REGISTRY}/${CI_PROJECT_PATH}/php7.4-composer:${CI_COMMIT_REF_SLUG}
+        DOCKER_PATH: .docker/php7.4-composer/
+    stage: base_image_pip
+    extends: .base_image
