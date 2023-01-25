@@ -9,6 +9,9 @@
 
 # See https://docs.gitlab.com/ee/ci/yaml/index.html for all available options
 
+variables:
+  GIT_SUBMODULE_STRATEGY: normal
+
 before_script:
   - . .gitlab-ci-functions/docker.sh
   - . .gitlab-ci-functions/kubernetes.sh
