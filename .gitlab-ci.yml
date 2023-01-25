@@ -10,6 +10,12 @@
 # See https://docs.gitlab.com/ee/ci/yaml/index.html for all available options
 
 before_script:
+  - . .gitlab-ci-functions/docker.sh
+  - . .gitlab-ci-functions/kubernetes.sh
+  - . .gitlab-ci-functions/rabbitmq.sh
+  - . .gitlab-ci-functions/misc.sh
+  - . .gitlab-ci-functions/vault.sh
+
   - echo "Before script section"
   - echo "For example you might run an update here or install a build dependency"
   - echo "Or perhaps you might print out some debugging details"
@@ -22,6 +28,7 @@ build1:
   stage: build
   script:
     - echo "Do your build here"
+    - vault_get_all_by_secret_path "kv/common/piplines"
 
 test1:
   stage: test
